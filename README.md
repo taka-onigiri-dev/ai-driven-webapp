@@ -156,8 +156,176 @@ backend/src/features/auth/
 
 ---
 
-## 10. この README の位置づけ
+## 10. クイックスタート
+
+### 前提条件
+
+- Docker Desktop がインストールされていること
+- Git がインストールされていること
+
+### セットアップ手順（Windows）
+
+1. **リポジトリをクローン**
+   ```bash
+   git clone <repository-url>
+   cd ai-driven-webapp
+   ```
+
+2. **Docker環境を起動**
+   ```bash
+   scripts\windows\start.bat
+   ```
+
+3. **アクセス**
+   - フロントエンド: http://localhost:3000
+   - バックエンドAPI: http://localhost:8080
+   - ヘルスチェック: http://localhost:8080/api/v1/health
+
+### 利用可能なコマンド（Windows）
+
+```bash
+scripts\windows\start.bat      # Docker環境を起動
+scripts\windows\stop.bat       # Docker環境を停止
+scripts\windows\restart.bat    # Docker環境を再起動
+scripts\windows\logs.bat       # ログを表示
+scripts\windows\status.bat     # コンテナの状態確認
+scripts\windows\rebuild.bat    # イメージを再ビルドして起動
+scripts\windows\clean.bat      # コンテナとボリュームを削除
+```
+
+詳細は `scripts/windows/README.md` を参照してください。
+
+---
+
+## 11. 実装済み機能
+
+### Phase 1 (MVP) - 実装完了
+
+✅ **基盤機能**
+- Docker環境構築（PostgreSQL、バックエンド、フロントエンド）
+- データベースマイグレーション（users、refresh_tokens）
+- ヘルスチェックエンドポイント
+
+✅ **認証機能**
+- ユーザー登録
+- ログイン（JWT認証）
+- ログアウト
+- トークンリフレッシュ
+- パスワードハッシュ化（bcrypt）
+
+✅ **フロントエンド**
+- ホームページ
+- ログインページ
+- 新規登録ページ
+- ダッシュボード
+- 認証状態管理（Zustand）
+
+### エンドポイント一覧
+
+| メソッド | エンドポイント | 説明 | 認証 |
+|---------|--------------|------|------|
+| GET | `/api/v1/health` | ヘルスチェック | 不要 |
+| POST | `/api/v1/auth/register` | ユーザー登録 | 不要 |
+| POST | `/api/v1/auth/login` | ログイン | 不要 |
+| POST | `/api/v1/auth/logout` | ログアウト | 必要 |
+| POST | `/api/v1/auth/refresh` | トークンリフレッシュ | 不要 |
+
+---
+
+## 12. ディレクトリ構成
+
+```
+ai-driven-webapp/
+├── docs/                       # ドキュメント
+│   └── DESIGN.md              # 設計書
+├── backend/                    # バックエンド（Rust）
+│   ├── src/
+│   │   ├── config/            # 設定管理
+│   │   ├── entities/          # データベースエンティティ
+│   │   ├── features/          # 機能別モジュール
+│   │   │   ├── health/        # ヘルスチェック
+│   │   │   └── auth/          # 認証機能
+│   │   ├── shared/            # 共通機能
+│   │   └── main.rs            # エントリーポイント
+│   └── migration/             # データベースマイグレーション
+├── frontend/                   # フロントエンド（Next.js）
+│   └── src/
+│       ├── app/               # App Router
+│       ├── components/        # コンポーネント
+│       ├── lib/               # ライブラリ
+│       │   ├── api/           # APIクライアント
+│       │   └── store/         # 状態管理
+│       └── types/             # 型定義
+├── docker/                     # Docker設定
+│   ├── backend/
+│   ├── frontend/
+│   └── postgres/
+├── scripts/                    # スクリプト
+│   └── windows/               # Windows用バッチファイル
+└── docker-compose.yml         # Docker Compose設定
+```
+
+---
+
+## 13. 開発ガイド
+
+### バックエンド開発
+
+**ローカルでテストを実行**（コンテナ内）
+```bash
+docker exec -it ai-webapp-backend cargo test
+```
+
+**ログを確認**
+```bash
+scripts\windows\logs.bat backend
+```
+
+### フロントエンド開発
+
+**ログを確認**
+```bash
+scripts\windows\logs.bat frontend
+```
+
+### データベース操作
+
+**マイグレーション実行**
+```bash
+docker exec -it ai-webapp-backend cargo run --manifest-path migration/Cargo.toml -- up
+```
+
+**PostgreSQLに接続**
+```bash
+docker exec -it ai-webapp-postgres psql -U app_user -d ai_webapp
+```
+
+---
+
+## 14. トラブルシューティング
+
+### ポートが既に使用されている
+
+ポート3000、8080、5432が既に使用されている場合は、該当するプロセスを終了してください。
+
+### Dockerコンテナが起動しない
+
+```bash
+scripts\windows\clean.bat
+scripts\windows\rebuild.bat
+```
+
+### ログを確認したい
+
+```bash
+scripts\windows\logs.bat
+```
+
+---
+
+## 15. この README の位置づけ
 
 - 本リポジトリの設計思想・制約条件の一次情報
 - Cloud Code に与える前提条件
 - 開発方針がブレないための合意文書
+- セットアップ・使用方法のガイド

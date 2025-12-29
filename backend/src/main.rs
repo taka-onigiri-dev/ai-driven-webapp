@@ -1,6 +1,7 @@
 mod config;
 mod shared;
 mod features;
+mod entities;
 
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_cors::Cors;
@@ -42,6 +43,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .wrap(Logger::default())
             .configure(features::health::configure)
+            .configure(features::auth::configure)
             // 他のfeatureはここに追加
     })
     .bind((host, port))?
