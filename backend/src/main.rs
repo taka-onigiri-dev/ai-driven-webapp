@@ -4,7 +4,7 @@ mod features;
 mod shared;
 
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{middleware::{Logger, from_fn}, web, App, HttpServer};
 use sea_orm::Database;
 use std::sync::Arc;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -45,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(config.clone()))
             .wrap(cors)
             .wrap(Logger::default())
+            .wrap(from_fn(features::audit::middleware::audit_logger))
             .configure(features::health::configure)
             .configure(features::auth::configure)
     })
