@@ -1,6 +1,6 @@
 # Backend Dockerfile (Development)
 # Note: Using nightly for edition2024 support (temporary until stable supports it)
-FROM rust:nightly-slim
+FROM rust:nightly
 
 # 作業ディレクトリ設定
 WORKDIR /app
