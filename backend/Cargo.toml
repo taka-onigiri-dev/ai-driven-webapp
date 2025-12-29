@@ -3,10 +3,6 @@ name = "ai-webapp-backend"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "gen-password-hash"
-path = "src/bin/gen_password_hash.rs"
-
 [dependencies]
 # Web Framework
 actix-web = "4.4"
