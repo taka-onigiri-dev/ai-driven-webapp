@@ -47,7 +47,7 @@ services:
       - backend_cache:/app/target
     networks:
       - app-network
-    command: cargo watch -x run
+    command: cargo run
 
   # Frontend (Next.js)
   frontend:

@@ -11,9 +11,6 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# cargo-watchのインストール（ホットリロード用）
-RUN cargo install cargo-watch
-
 # 依存関係のキャッシュ用に先にCargo.tomlをコピー
 COPY Cargo.toml Cargo.lock* ./
 
