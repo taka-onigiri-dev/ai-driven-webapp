@@ -13,7 +13,6 @@ tokio = { version = "1.35", features = ["full"] }
 
 # Database
 sea-orm = { version = "0.12", features = ["sqlx-postgres", "runtime-tokio-native-tls", "macros"] }
-sea-orm-migration = "0.12"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -41,19 +40,11 @@ anyhow = "1.0"
 # Date/Time
 chrono = { version = "0.4", features = ["serde"] }
 
-# UUID
-uuid = { version = "1.6", features = ["v4", "serde"] }
-
 # Crypto
 sha2 = "0.10"
 
 # Async Trait
 async-trait = "0.1"
-
-[dev-dependencies]
-# Testing
-actix-rt = "2.9"
-mockall = "0.12"
 
 [profile.dev]
 opt-level = 0

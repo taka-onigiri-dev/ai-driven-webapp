@@ -1,5 +1,3 @@
-pub mod error;
-pub mod response;
+mod error;
 
 pub use error::{AppError, AppResult};
-pub use response::ApiResponse;

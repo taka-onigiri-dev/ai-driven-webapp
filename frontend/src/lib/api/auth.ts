@@ -1,18 +1,47 @@
-import { api } from './client'
-import { ApiResponse, AuthResponse, LoginRequest, RegisterRequest } from '@/types'
+import apiClient from './client'
+
+export interface RegisterData {
+  email: string
+  password: string
+  name: string
+}
+
+export interface LoginData {
+  email: string
+  password: string
+}
+
+export interface AuthResponse {
+  user: {
+    id: number
+    email: string
+    name: string
+    role: string
+    is_active: boolean
+  }
+  access_token: string
+  refresh_token: string
+}
 
 export const authApi = {
-  login: (data: LoginRequest) =>
-    api.post<ApiResponse<AuthResponse>>('/auth/login', data),
+  register: async (data: RegisterData): Promise<AuthResponse> => {
+    const response = await apiClient.post('/api/v1/auth/register', data)
+    return response.data
+  },
 
-  register: (data: RegisterRequest) =>
-    api.post<ApiResponse<AuthResponse>>('/auth/register', data),
+  login: async (data: LoginData): Promise<AuthResponse> => {
+    const response = await apiClient.post('/api/v1/auth/login', data)
+    return response.data
+  },
 
-  logout: (token: string) =>
-    api.post('/auth/logout', {}, { token }),
+  logout: async (): Promise<void> => {
+    await apiClient.post('/api/v1/auth/logout')
+  },
 
-  refresh: (refreshToken: string) =>
-    api.post<ApiResponse<{ access_token: string }>>('/auth/refresh', {
+  refresh: async (refreshToken: string): Promise<{ access_token: string }> => {
+    const response = await apiClient.post('/api/v1/auth/refresh', {
       refresh_token: refreshToken,
-    }),
+    })
+    return response.data
+  },
 }

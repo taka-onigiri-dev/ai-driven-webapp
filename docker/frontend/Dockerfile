@@ -1,20 +1,16 @@
-# Frontend Dockerfile (Development)
 FROM node:20-alpine
 
-# 作業ディレクトリ設定
 WORKDIR /app
 
-# package.jsonをコピー
-COPY package*.json ./
+# Copy package files
+COPY frontend/package*.json ./
 
-# 依存関係のインストール
+# Install dependencies
 RUN npm install
 
-# ソースコードをコピー
-COPY . .
+# Copy frontend code
+COPY frontend /app
 
-# デフォルトポート
 EXPOSE 3000
 
-# 開発用コマンド（docker-compose.ymlでオーバーライド）
 CMD ["npm", "run", "dev"]

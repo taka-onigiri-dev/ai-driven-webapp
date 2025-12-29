@@ -1,331 +1,202 @@
-# Web Application Project
+# AI-Driven Web Application
 
-本リポジトリは、設計先行・テスト重視・AI 駆動開発（Cloud Code）を前提とした  
-Web アプリケーション開発のためのモノレポ構成です。
+モノレポ構成の Web アプリケーション（Rust + Next.js + PostgreSQL）
 
-実装に入る前に、アーキテクチャ・テスト方針・ディレクトリ構成を明確に定義します。
+## 概要
 
----
+- **バックエンド**: Rust + Actix Web + SeaORM
+- **フロントエンド**: Next.js 14 + TypeScript + Tailwind CSS
+- **データベース**: PostgreSQL 15
+- **認証**: JWT (Access Token + Refresh Token)
+- **開発環境**: Docker + Docker Compose
 
-## 1. 目的・基本方針
+## 🚀 クイックスタート
 
-- Web アプリケーションを新規開発する
-- 実装前に設計を固める
-- 設計・テスト・コードを一貫した思想で管理する
-- Cloud Code（AI）に実装を任せやすい構成を採用する
-- ローカル開発・CI・本番で構成差分を最小化する
+### 1. 環境起動
 
----
+```bash
+# Dockerコンテナを起動
+scripts\windows\start.bat
 
-## 2. 技術スタック
+# データベーススキーマを作成
+scripts\windows\migrate-ddl.bat
+```
 
-### バックエンド
+### 2. ユーザー登録
 
-- 言語: Rust
-- Web フレームワーク: Actix Web
-- DB: PostgreSQL
+ブラウザで http://localhost:3000/register にアクセスして、最初のユーザーを登録します。
 
-### フロントエンド
+### 3. テストデータ追加（オプション）
 
-- フレームワーク: Next.js
+登録したユーザーのパスワードハッシュを取得して、マスターデータ・テストデータに追加できます。
 
-### 環境管理
+```bash
+# パスワードハッシュを確認
+docker exec -it ai-webapp-postgres psql -U app_user -d ai_webapp -c "SELECT email, password_hash FROM users WHERE email = 'your-email@example.com';"
 
-- Docker
-- Docker Compose
+# SQLファイルに追加して実行
+scripts\windows\migrate-master.bat        # マスターデータ
+scripts\windows\migrate-transaction.bat   # テストデータ
+```
 
----
+## 📁 プロジェクト構成
 
-## 3. リポジトリ構成方針
-
-- モノレポ構成
-- フロントエンド / バックエンド / インフラ設定を 1 リポジトリで管理
-- 機能（feature）単位でコード・テスト・設計をまとめる
-
-想定ディレクトリ構成（概略）：
-
+```
 .
-├─ docs/
-├─ backend/
-├─ frontend/
-├─ docker/
-└─ README.md
+├── backend/                  # Rustバックエンド
+│   ├── src/
+│   │   ├── main.rs
+│   │   ├── config.rs
+│   │   ├── entities/        # SeaORM エンティティ
+│   │   ├── features/        # 機能別モジュール
+│   │   │   ├── health/      # ヘルスチェック
+│   │   │   └── auth/        # 認証機能
+│   │   │       ├── domain.rs      # ドメインモデル
+│   │   │       ├── repository.rs  # リポジトリインターフェース
+│   │   │       ├── infra.rs       # インフラ実装
+│   │   │       ├── service.rs     # ビジネスロジック
+│   │   │       └── handler.rs     # HTTPハンドラ
+│   │   └── shared/          # 共有モジュール
+│   ├── sql/                 # SQLマイグレーション
+│   │   ├── ddl/             # DDL（テーブル定義）
+│   │   ├── master_data/     # マスターデータ
+│   │   └── transaction_data/ # テストデータ
+│   └── Cargo.toml
+├── frontend/                # Next.js フロントエンド
+│   ├── src/
+│   │   ├── app/             # App Router
+│   │   │   ├── page.tsx     # トップページ
+│   │   │   ├── login/       # ログインページ
+│   │   │   ├── register/    # 登録ページ
+│   │   │   └── dashboard/   # ダッシュボード
+│   │   └── lib/
+│   │       ├── api/         # API クライアント
+│   │       └── store/       # Zustand ストア
+│   └── package.json
+├── docker/                  # Docker設定
+│   ├── backend/Dockerfile
+│   └── frontend/Dockerfile
+├── scripts/                 # 運用スクリプト
+│   └── windows/             # Windows用バッチファイル
+└── docs/                    # ドキュメント
+```
 
----
+## 🛠️ 開発ツール
 
-## 4. アーキテクチャ方針（バックエンド）
+### Windows用バッチファイル
 
-- レイヤードアーキテクチャを採用
-- 機能（feature）× レイヤーのハイブリッド構成
+| スクリプト | 説明 |
+|-----------|------|
+| `start.bat` | Docker環境を起動 |
+| `stop.bat` | Docker環境を停止 |
+| `restart.bat` | Docker環境を再起動 |
+| `status.bat` | コンテナの状態確認 |
+| `logs.bat` | ログ表示 |
+| `rebuild.bat` | イメージを再ビルドして起動 |
+| `clean.bat` | コンテナとボリュームを削除 |
+| `migrate-ddl.bat` | DDL実行 |
+| `migrate-master.bat` | マスターデータ投入 |
+| `migrate-transaction.bat` | テストデータ投入 |
+| `migrate-all.bat` | 全マイグレーション実行 |
 
-構成イメージ：
+詳細は [scripts/windows/README.md](scripts/windows/README.md) を参照。
 
-handler (HTTP)
-↓
-service / usecase
-↓
-domain / validation
-↓
-repository (trait)
-↓
-infra (DB)
+## 🗄️ データベースマイグレーション
 
-- HTTP / DB / 時刻などの副作用は境界に閉じ込める
-- core ロジックは純粋関数または mock 可能な形で実装する
+SQLファイルベースのマイグレーションシステムを採用しています。
 
----
+### マイグレーション方針
 
-## 5. 機能（Feature）分割方針
+1. **DDL（スキーマ定義）**: `backend/sql/ddl/`
+   - テーブル、インデックス、制約の定義
 
-- すべての機能は feature 単位で管理する
-- feature は原則として他 feature に直接依存しない
-- 共通機能は shared に集約する
+2. **マスターデータ**: `backend/sql/master_data/`
+   - 本番環境でも必要なデータ
+   - システムユーザー、設定値など
 
-最低限想定される基盤 feature：
+3. **トランザクションデータ**: `backend/sql/transaction_data/`
+   - 開発・テスト環境専用
+   - テストユーザー、サンプルデータなど
 
-- auth（認証・認可）
-- user（ユーザー管理）
-- validation（入力検証）
-- error（エラーハンドリング）
-- config（設定管理）
-- logging（ログ）
-- health（ヘルスチェック）
+### テストデータの追加方法
 
----
+**重要**: パスワードハッシュは画面から登録したアカウントのハッシュを使用してください。
 
-## 6. テスト方針
+1. フロントエンドから新規ユーザーを登録
+2. データベースからパスワードハッシュを取得
+   ```bash
+   docker exec -it ai-webapp-postgres psql -U app_user -d ai_webapp -c "SELECT email, password_hash FROM users;"
+   ```
+3. 取得したハッシュを使ってSQLファイルを作成
+4. マイグレーションを実行
 
-### 基本思想
+詳細は [backend/sql/README.md](backend/sql/README.md) を参照。
 
-- すべての動きにテストを書く
-- テストは仕様書であり、設計の一部とする
-- テスト不能なコードは設計ミスと考える
+## 🔐 認証システム
+
+- JWT（JSON Web Token）ベースの認証
+- Access Token（有効期限: 15分）
+- Refresh Token（有効期限: 7日）
+- bcryptによるパスワードハッシュ化
+- パスワード要件: 8文字以上、大文字・小文字・数字を含む
+
+## 📡 API エンドポイント
+
+### 認証
+
+- `POST /api/v1/auth/register` - ユーザー登録
+- `POST /api/v1/auth/login` - ログイン
+- `POST /api/v1/auth/logout` - ログアウト
+- `POST /api/v1/auth/refresh` - トークンリフレッシュ
+
+### ヘルスチェック
+
+- `GET /health` - サービス稼働確認
+
+## 🌐 アクセスURL
+
+- **フロントエンド**: http://localhost:3000
+- **バックエンドAPI**: http://localhost:8080
+- **データベース**: localhost:5432
+
+## 📋 環境変数
+
+バックエンドの環境変数は `docker-compose.yml` で設定されています：
+
+- `DATABASE_URL`: PostgreSQL接続文字列
+- `JWT_SECRET`: JWT署名用シークレット
+- `JWT_ACCESS_TOKEN_EXPIRY`: アクセストークンの有効期限（秒）
+- `JWT_REFRESH_TOKEN_EXPIRY`: リフレッシュトークンの有効期限（秒）
+- `RUST_LOG`: ログレベル
+
+## 🏗️ アーキテクチャ
 
 ### バックエンド
 
-- 単体テスト（domain / service）を最重視する
-- ハンドラテストはレスポンス確認に限定する
-- API + DB の結合テストを実施（主要ユースケースのみ）
+レイヤードアーキテクチャを採用：
+
+1. **Handler層**: HTTP リクエストの受付
+2. **Service層**: ビジネスロジック
+3. **Repository層**: データアクセスの抽象化
+4. **Infrastructure層**: 具体的なDB操作
 
 ### フロントエンド
 
-- hooks / utils の単体テスト
-- コンポーネントテスト
-- E2E テストは最小限（主要動線のみ）
+- Next.js 14 App Router
+- TypeScript による型安全性
+- Zustand による状態管理
+- React Hook Form によるフォーム管理
+- Tailwind CSS によるスタイリング
 
----
+## 🧪 開発フロー
 
-## 7. カバレッジ方針
+1. 設計書を作成・レビュー（`docs/DESIGN.md`）
+2. バックエンドAPI実装
+3. フロントエンド実装
+4. 動作確認
+5. テストデータ追加
+6. ドキュメント更新
 
-- 数値としてのカバレッジ 100% を目標とする
-- ただし「意味のある範囲」に限定する
+## 📝 ライセンス
 
-カバレッジ対象ルール：
-
-- domain / service / validation: 100%必須
-- hooks / utils: 100%必須
-- handler / UI コンポーネント: 80〜90%目安
-- infra / 起動コード / FW 依存部分: 対象外
-
----
-
-## 8. 設計書の管理方針
-
-- 設計書はコードの近くに配置する
-- 全体設計は docs/ 配下に配置する
-- feature 単位の設計は feature 配下に DESIGN.md を置く
-
-例（バックエンド）：
-
-backend/src/features/auth/
-
-- DESIGN.md
-- handler.rs
-- service.rs
-- domain.rs
-- tests/
-
----
-
-## 9. Cloud Code 利用前提ルール
-
-- 実装は必ず設計書（DESIGN.md）を前提に行う
-- 設計未記載のコード追加は禁止する
-- 変更は「設計 → テスト → 実装」の順で行う
-- テスト失敗・カバレッジ不足は設計見直しのサインとする
-
----
-
-## 10. クイックスタート
-
-### 前提条件
-
-- Docker Desktop がインストールされていること
-- Git がインストールされていること
-
-### セットアップ手順（Windows）
-
-1. **リポジトリをクローン**
-   ```bash
-   git clone <repository-url>
-   cd ai-driven-webapp
-   ```
-
-2. **Docker環境を起動**
-   ```bash
-   scripts\windows\start.bat
-   ```
-
-3. **アクセス**
-   - フロントエンド: http://localhost:3000
-   - バックエンドAPI: http://localhost:8080
-   - ヘルスチェック: http://localhost:8080/api/v1/health
-
-### 利用可能なコマンド（Windows）
-
-```bash
-scripts\windows\start.bat      # Docker環境を起動
-scripts\windows\stop.bat       # Docker環境を停止
-scripts\windows\restart.bat    # Docker環境を再起動
-scripts\windows\logs.bat       # ログを表示
-scripts\windows\status.bat     # コンテナの状態確認
-scripts\windows\rebuild.bat    # イメージを再ビルドして起動
-scripts\windows\clean.bat      # コンテナとボリュームを削除
-```
-
-詳細は `scripts/windows/README.md` を参照してください。
-
----
-
-## 11. 実装済み機能
-
-### Phase 1 (MVP) - 実装完了
-
-✅ **基盤機能**
-- Docker環境構築（PostgreSQL、バックエンド、フロントエンド）
-- データベースマイグレーション（users、refresh_tokens）
-- ヘルスチェックエンドポイント
-
-✅ **認証機能**
-- ユーザー登録
-- ログイン（JWT認証）
-- ログアウト
-- トークンリフレッシュ
-- パスワードハッシュ化（bcrypt）
-
-✅ **フロントエンド**
-- ホームページ
-- ログインページ
-- 新規登録ページ
-- ダッシュボード
-- 認証状態管理（Zustand）
-
-### エンドポイント一覧
-
-| メソッド | エンドポイント | 説明 | 認証 |
-|---------|--------------|------|------|
-| GET | `/api/v1/health` | ヘルスチェック | 不要 |
-| POST | `/api/v1/auth/register` | ユーザー登録 | 不要 |
-| POST | `/api/v1/auth/login` | ログイン | 不要 |
-| POST | `/api/v1/auth/logout` | ログアウト | 必要 |
-| POST | `/api/v1/auth/refresh` | トークンリフレッシュ | 不要 |
-
----
-
-## 12. ディレクトリ構成
-
-```
-ai-driven-webapp/
-├── docs/                       # ドキュメント
-│   └── DESIGN.md              # 設計書
-├── backend/                    # バックエンド（Rust）
-│   ├── src/
-│   │   ├── config/            # 設定管理
-│   │   ├── entities/          # データベースエンティティ
-│   │   ├── features/          # 機能別モジュール
-│   │   │   ├── health/        # ヘルスチェック
-│   │   │   └── auth/          # 認証機能
-│   │   ├── shared/            # 共通機能
-│   │   └── main.rs            # エントリーポイント
-│   └── migration/             # データベースマイグレーション
-├── frontend/                   # フロントエンド（Next.js）
-│   └── src/
-│       ├── app/               # App Router
-│       ├── components/        # コンポーネント
-│       ├── lib/               # ライブラリ
-│       │   ├── api/           # APIクライアント
-│       │   └── store/         # 状態管理
-│       └── types/             # 型定義
-├── docker/                     # Docker設定
-│   ├── backend/
-│   ├── frontend/
-│   └── postgres/
-├── scripts/                    # スクリプト
-│   └── windows/               # Windows用バッチファイル
-└── docker-compose.yml         # Docker Compose設定
-```
-
----
-
-## 13. 開発ガイド
-
-### バックエンド開発
-
-**ローカルでテストを実行**（コンテナ内）
-```bash
-docker exec -it ai-webapp-backend cargo test
-```
-
-**ログを確認**
-```bash
-scripts\windows\logs.bat backend
-```
-
-### フロントエンド開発
-
-**ログを確認**
-```bash
-scripts\windows\logs.bat frontend
-```
-
-### データベース操作
-
-**マイグレーション実行**
-```bash
-docker exec -it ai-webapp-backend cargo run --manifest-path migration/Cargo.toml -- up
-```
-
-**PostgreSQLに接続**
-```bash
-docker exec -it ai-webapp-postgres psql -U app_user -d ai_webapp
-```
-
----
-
-## 14. トラブルシューティング
-
-### ポートが既に使用されている
-
-ポート3000、8080、5432が既に使用されている場合は、該当するプロセスを終了してください。
-
-### Dockerコンテナが起動しない
-
-```bash
-scripts\windows\clean.bat
-scripts\windows\rebuild.bat
-```
-
-### ログを確認したい
-
-```bash
-scripts\windows\logs.bat
-```
-
----
-
-## 15. この README の位置づけ
-
-- 本リポジトリの設計思想・制約条件の一次情報
-- Cloud Code に与える前提条件
-- 開発方針がブレないための合意文書
-- セットアップ・使用方法のガイド
+This project is licensed under the MIT License.
