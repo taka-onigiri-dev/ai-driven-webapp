@@ -1,5 +1,5 @@
 # Backend Dockerfile (Development)
-FROM rust:1.75-slim
+FROM rust:1.83-slim
 
 # 作業ディレクトリ設定
 WORKDIR /app
