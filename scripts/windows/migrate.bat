@@ -1,32 +1,21 @@
 @echo off
-REM データベースマイグレーションを実行するスクリプト
+REM データベースマイグレーションを実行するスクリプト（レガシー）
+REM 新しいSQLベースのマイグレーションスクリプトを使用してください
 
 echo ====================================
 echo AI-Driven WebApp - Database Migration
 echo ====================================
 echo.
-
-cd /d "%~dp0..\.."
-
-echo [1/2] Running database migrations...
+echo NOTICE: This script is deprecated.
+echo Please use the new SQL-based migration scripts:
 echo.
-
-docker exec -it ai-webapp-backend cargo run --manifest-path migration/Cargo.toml -- up
-
+echo   migrate-ddl.bat          - Create database schema
+echo   migrate-master.bat       - Insert master data
+echo   migrate-transaction.bat  - Insert transaction data
+echo   migrate-all.bat          - Run all migrations
 echo.
-echo [2/2] Creating test user...
+echo Redirecting to migrate-all.bat...
 echo.
-
-docker exec -i ai-webapp-postgres psql -U app_user -d ai_webapp -c "INSERT INTO users (email, password_hash, name, role, is_active, created_at, updated_at) VALUES ('test@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5eo5kXBq.JVKi', 'Test User', 'user', true, NOW(), NOW()) ON CONFLICT (email) DO NOTHING;"
-
-echo.
-echo ====================================
-echo Migration completed!
-echo ====================================
-echo.
-echo Test user created:
-echo   Email: test@example.com
-echo   Password: Password123
-echo.
-
 pause
+
+call migrate-all.bat
