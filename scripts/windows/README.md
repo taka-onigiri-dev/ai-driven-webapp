@@ -39,6 +39,14 @@
   scripts\windows\logs.bat postgres
   ```
 
+### データベース
+
+- **migrate.bat** - データベースマイグレーションを実行
+  ```
+  scripts\windows\migrate.bat
+  ```
+  ※初回起動時や、データベーススキーマ変更時に実行してください
+
 ### メンテナンス
 
 - **rebuild.bat** - Dockerイメージを再ビルドして起動
